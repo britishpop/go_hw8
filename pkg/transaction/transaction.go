@@ -3,6 +3,7 @@ package transaction
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/xml"
 	"io"
 	"io/ioutil"
 	"log"
@@ -15,18 +16,25 @@ import (
 const formatDate = time.RFC1123
 
 type Transaction struct {
-	Id     int64
-	Type   string
-	Sum    int64
-	Status string
-	MCC    string
-	Date   time.Time
+	XMLName string    `xml:"transactions"`
+	Id      int64     `xml:"id"`
+	Type    string    `xml:"type"`
+	Sum     int64     `xml:"sum"`
+	Status  string    `xml:"status"`
+	MCC     string    `xml:"mcc"`
+	Date    time.Time `xml:"date"`
+}
+
+type Transactions struct {
+	XMLName      string `xml:"transactions"`
+	Transactions []*Transaction
 }
 
 func MakeTransactions(count int) []*Transaction {
 	transactions := make([]*Transaction, count)
 	for index := range transactions {
 		v := &Transaction{
+			`xml:"transaction"`,
 			int64(index),
 			"transfer",
 			1000,
@@ -135,6 +143,41 @@ func ExportCSV(filename string, transactions []*Transaction) error {
 	err = writeToFile(file, transactions)
 	if err != nil {
 		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (t *Transactions) ExportXML(filename string) error {
+	encodedXML, err := xml.Marshal(t)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	encodedXML = append([]byte(xml.Header), encodedXML...)
+
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	defer file.Close()
+	file.Write(encodedXML)
+
+	return nil
+}
+
+func (t *Transactions) ImportXML(filename string) error {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+
+	err = xml.Unmarshal(data, &t.Transactions)
+	if err != nil {
+		log.Print(err)
 		return err
 	}
 
