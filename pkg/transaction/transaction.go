@@ -32,7 +32,7 @@ func MakeTransactions(count int) []*Transaction {
 			1000,
 			"in progress",
 			"4921",
-			time.Now(),
+			time.Date(2020, time.January, index, 11, 15, 10, 0, time.UTC),
 		}
 		transactions[index] = v
 	}
@@ -60,37 +60,37 @@ func writeToFile(f io.Writer, transactions []*Transaction) error {
 	return w.WriteAll(records)
 }
 
-func ImportCSV(filename string) (transactions []*Transaction, err error) {
+func ImportCSV(filename string) error {
 	mu := sync.Mutex{}
+	transactions := make([]*Transaction, 0)
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return err
 	}
 
 	reader := csv.NewReader(bytes.NewReader(data))
 	rows, err := reader.ReadAll()
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return err
 	}
 
 	for _, row := range rows {
 
 		mu.Lock()
-		t, err := CreateTransaction(row)
+		t, err := MapRowToTransaction(row)
 		if err != nil {
 			log.Println(err)
-			return nil, err
+			return err
 		}
 		transactions = append(transactions, t)
 		mu.Unlock()
 	}
-
-	return transactions, nil
+	return nil
 }
 
-func CreateTransaction(row []string) (*Transaction, error) {
+func MapRowToTransaction(row []string) (*Transaction, error) {
 	id, err := strconv.ParseInt(row[0], 10, 64)
 	if err != nil {
 		log.Println(err)
@@ -117,7 +117,6 @@ func CreateTransaction(row []string) (*Transaction, error) {
 		MCC:    row[4],
 		Date:   date,
 	}
-
 	return tr, nil
 }
 
