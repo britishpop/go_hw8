@@ -165,6 +165,8 @@ func ExportJSON(filename string, transactions []*Transaction) error {
 	}
 	defer file.Close()
 	file.Write(encodedJson)
+	return nil
+}
 
 func (t *Transactions) ExportXML(filename string) error {
 	encodedXML, err := xml.Marshal(t)
@@ -199,6 +201,7 @@ func ImportJSON(filename string) ([]*Transaction, error) {
 	}
 
 	return transactions, nil
+}
   
 func (t *Transactions) ImportXML(filename string) error {
 	data, err := ioutil.ReadFile(filename)
