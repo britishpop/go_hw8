@@ -3,7 +3,9 @@ package transaction
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/json"
 	"encoding/xml"
+
 	"io"
 	"io/ioutil"
 	"log"
@@ -68,36 +70,6 @@ func writeToFile(f io.Writer, transactions []*Transaction) error {
 	return w.WriteAll(records)
 }
 
-func ImportCSV(filename string) error {
-	mu := sync.Mutex{}
-	transactions := make([]*Transaction, 0)
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	reader := csv.NewReader(bytes.NewReader(data))
-	rows, err := reader.ReadAll()
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	for _, row := range rows {
-
-		mu.Lock()
-		t, err := MapRowToTransaction(row)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-		transactions = append(transactions, t)
-		mu.Unlock()
-	}
-	return nil
-}
-
 func MapRowToTransaction(row []string) (*Transaction, error) {
 	id, err := strconv.ParseInt(row[0], 10, 64)
 	if err != nil {
@@ -149,6 +121,51 @@ func ExportCSV(filename string, transactions []*Transaction) error {
 	return nil
 }
 
+func ImportCSV(filename string) ([]*Transaction, error) {
+	mu := sync.Mutex{}
+	transactions := make([]*Transaction, 0)
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	reader := csv.NewReader(bytes.NewReader(data))
+	rows, err := reader.ReadAll()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for _, row := range rows {
+
+		mu.Lock()
+		t, err := MapRowToTransaction(row)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		transactions = append(transactions, t)
+		mu.Unlock()
+	}
+	return transactions, nil
+}
+
+func ExportJSON(filename string, transactions []*Transaction) error {
+	encodedJson, err := json.Marshal(transactions)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer file.Close()
+	file.Write(encodedJson)
+
 func (t *Transactions) ExportXML(filename string) error {
 	encodedXML, err := xml.Marshal(t)
 	if err != nil {
@@ -164,10 +181,25 @@ func (t *Transactions) ExportXML(filename string) error {
 	}
 	defer file.Close()
 	file.Write(encodedXML)
-
 	return nil
 }
 
+func ImportJSON(filename string) ([]*Transaction, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	transactions := make([]*Transaction, 0)
+
+	err = json.Unmarshal(data, &transactions)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+
+	return transactions, nil
+  
 func (t *Transactions) ImportXML(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {

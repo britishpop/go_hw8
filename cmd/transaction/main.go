@@ -2,18 +2,35 @@ package main
 
 import (
 	"go_hw_8/pkg/transaction"
+	"log"
 	"os"
 )
 
 func main() {
-	transactions := transaction.MakeTransactions(10)
-	if err := transaction.ExportCSV("example_import.csv", transactions); err != nil {
+	tr := transaction.MakeTransactions(3)
+
+	if err := transaction.ExportCSV("example_import.csv", tr); err != nil {
 		os.Exit(10)
 	}
 
-	if errE := transaction.ImportCSV("example_import.csv"); errE != nil {
+	transactionsCSV, err := transaction.ImportCSV("example_import.csv")
+	if err != nil {
 		os.Exit(10)
 	}
+	for _, v := range transactionsCSV {
+		log.Printf("New transaction from CSV file: %v", *v)
+	}
+
+	if err := transaction.ExportJSON("example_import_json.csv", tr); err != nil {
+		os.Exit(10)
+	}
+
+	transactionsJSON, err := transaction.ImportJSON("example_import_json.csv")
+	if err != nil {
+		os.Exit(10)
+	}
+	for _, v := range transactionsJSON {
+		log.Printf("New transaction from JSON file: %v", *v)
 
 	transactionsXML := &transaction.Transactions{
 		Transactions: transactions,
