@@ -31,6 +31,7 @@ func main() {
 	}
 	for _, v := range transactionsJSON {
 		log.Printf("New transaction from JSON file: %v", *v)
+	}
 
 	transactionsXML := &transaction.Transactions{
 		Transactions: transactions,
