@@ -14,4 +14,17 @@ func main() {
 	if errE := transaction.ImportCSV("example_import.csv"); errE != nil {
 		os.Exit(10)
 	}
+
+	transactionsXML := &transaction.Transactions{
+		Transactions: transactions,
+	}
+
+	if err := transactionsXML.ExportXML("example_import_xml.xml"); err != nil {
+		os.Exit(10)
+	}
+
+	transactionsXMLToImport := &transaction.Transactions{}
+	if err := transactionsXMLToImport.ImportXML("example_import_xml.xml"); err != nil {
+		os.Exit(10)
+	}
 }
