@@ -31,5 +31,17 @@ func main() {
 	}
 	for _, v := range transactionsJSON {
 		log.Printf("New transaction from JSON file: %v", *v)
+
+	transactionsXML := &transaction.Transactions{
+		Transactions: transactions,
+	}
+
+	if err := transactionsXML.ExportXML("example_import_xml.xml"); err != nil {
+		os.Exit(10)
+	}
+
+	transactionsXMLToImport := &transaction.Transactions{}
+	if err := transactionsXMLToImport.ImportXML("example_import_xml.xml"); err != nil {
+		os.Exit(10)
 	}
 }
