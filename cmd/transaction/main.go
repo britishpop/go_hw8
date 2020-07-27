@@ -34,7 +34,7 @@ func main() {
 	}
 
 	transactionsXML := &transaction.Transactions{
-		Transactions: transactions,
+		Transactions: tr,
 	}
 
 	if err := transactionsXML.ExportXML("example_import_xml.xml"); err != nil {
